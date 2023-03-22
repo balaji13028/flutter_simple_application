@@ -1,29 +1,38 @@
 class UserProfileData {
-  String? id, userName, password, userEmail, phonenumber, Role;
+  String? id, userName, password, userEmail, phonenumber, role;
   UserProfileData({
     this.id,
     this.userEmail,
     this.userName,
     this.password,
     this.phonenumber,
-    this.Role,
+    this.role,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'userName': userName,
-      'password': password,
+      'userPassword': password,
       'userEmail': userEmail,
-      'Role': Role,
+      'Role': role,
     };
+  }
+
+  UserProfileData.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    userEmail = json['userEmail'];
+    userName = json['userName'];
+    role = json['Role'];
+    password = json['userPassword'];
   }
 
   @override
   String toString() {
-    return 'UserProfileData{id:$id,userName:$userName,password:$password,userEmail:$userEmail,phonenumber:$phonenumber,Role:$Role}';
+    return 'UserProfileData{id:$id,userName:$userName,userPassword:$password,userEmail:$userEmail,role:$role}';
   }
 }
 
 List<UserProfileData> userdata = [];
-UserProfileData newUser = UserProfileData();
+//UserProfileData user = UserProfileData();
+UserProfileData newuUser = UserProfileData();

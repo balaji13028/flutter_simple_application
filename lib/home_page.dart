@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_simple_application/login_page.dart';
+import 'package:flutter_simple_application/drawer.dart';
 import 'package:flutter_simple_application/user_model.dart';
+import 'color_palette.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -10,7 +13,6 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  UserProfileData user = userdata[0];
   final sliderbar = GlobalKey<ScaffoldState>();
 
   @override
@@ -22,117 +24,14 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-        drawer: Drawer(
-          child: Column(
-            children: [
-              // Container(
-              //     height: size.height * 0.25,
-              //     width: size.width,
-              //     padding: const EdgeInsets.only(left: 20, top: 20),
-              //     decoration: const BoxDecoration(
-              //         gradient: LinearGradient(
-              //             colors: [
-              //           Color.fromRGBO(4, 9, 35, 1),
-              //           Color.fromRGBO(39, 105, 170, 1),
-              //         ],
-              //             begin: FractionalOffset.bottomLeft,
-              //             end: FractionalOffset.topCenter)),
-              //     child: Row(
-              //       crossAxisAlignment: CrossAxisAlignment.center,
-              //       children: [
-              //         Column(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           children: [
-              //             GestureDetector(
-              //               onTap: () {},
-              //               child: CircleAvatar(
-              //                 radius: size.height * 0.06,
-              //                 backgroundColor: Colors.white,
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //         SizedBox(
-              //           width: size.width * 0.04,
-              //         ),
-              //         Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           children: [
-              //             Text(
-              //               user.name ?? '',
-              //               style: const TextStyle(
-              //                   fontSize: 24,
-              //                   fontWeight: FontWeight.bold,
-              //                   color: Colors.white),
-              //             ),
-              //             const SizedBox(
-              //               height: 5,
-              //             ),
-              //             Text(
-              //               user.email ?? '',
-              //               style: const TextStyle(
-              //                   decoration: TextDecoration.underline,
-              //                   fontSize: 14,
-              //                   fontWeight: FontWeight.normal,
-              //                   color: Colors.white),
-              //             )
-              //           ],
-              //         ),
-              //       ],
-              //     )),
-              SizedBox(height: size.height * 0.02),
-              ListTile(
-                leading: const Icon(
-                  Icons.work,
-                  size: 35,
-                  color: Colors.black54,
-                ),
-                title: const Text(
-                  'Profile Info',
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
-                ),
-                onTap: () {},
-              ),
-              SizedBox(height: size.height * 0.5),
-              Container(
-                height: size.height * 0.07,
-                width: size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10)),
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.exit_to_app,
-                    size: 35,
-                    color: Colors.white,
-                  ),
-                  title: Text(
-                    'sign out'.toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  onTap: () async {
-                    //await deleteUserDetails();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: ((context) => const LoginScreen())));
-                  },
-                ),
-              )
-            ],
-          ),
-        ),
+        drawer: const DrawerSide(),
         key: sliderbar,
         appBar: AppBar(
           centerTitle: true,
+          flexibleSpace: Container(
+            decoration:
+                const BoxDecoration(gradient: ColorPalette.secondryGradient),
+          ),
           automaticallyImplyLeading: false,
           leading: IconButton(
               onPressed: (() {
@@ -141,13 +40,80 @@ class _HomepageState extends State<Homepage> {
                 });
               }),
               icon: const Icon(Icons.menu)),
-          title: Text(
-            'Home Screen',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+          title: const Text(
+            'List Of Users',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
           ),
         ),
-        body: Column(
-          children: [],
-        ));
+        body: StreamBuilder(
+            stream: FirebaseFirestore.instance.collection('users').snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.data == null) {
+                return const SizedBox();
+              }
+
+              if (snapshot.data!.docs.isEmpty) {
+                return const SizedBox(
+                  child: Center(child: Text("No users")),
+                );
+              }
+
+              if (snapshot.hasData) {
+                List<UserProfileData> userlist = [];
+                for (var doc in snapshot.data!.docs) {
+                  final data = UserProfileData.fromJson(
+                      doc.data() as Map<String, dynamic>);
+
+                  userlist.add(data);
+                }
+                return ListView.builder(
+                  itemCount: userlist.length,
+                  itemBuilder: (context, index) => Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
+                    child: Container(
+                        padding: const EdgeInsets.only(
+                            right: 10, top: 10, bottom: 10),
+                        height: size.height * 0.12,
+                        width: size.width,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: ListTile(
+                            horizontalTitleGap: 10,
+                            leading: CircleAvatar(
+                              radius: size.height * 0.042,
+                              child: Image.asset('assets/profile.png'),
+                            ),
+                            title: Text(
+                              userlist[index].userName!,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                            subtitle: Text(
+                              userlist[index].role!,
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.black54),
+                            ),
+                          ),
+                        )),
+                  ),
+                );
+              }
+              return const SizedBox();
+            }));
   }
 }

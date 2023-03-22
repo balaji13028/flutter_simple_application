@@ -1,12 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:html';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_simple_application/firestore_api.dart';
 import 'package:flutter_simple_application/home_page.dart';
+import 'package:flutter_simple_application/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -101,8 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     TextFormField(
-                      keyboardType: TextInputType.text,
-                      textCapitalization: TextCapitalization.words,
+                      keyboardType: TextInputType.emailAddress,
+                      textCapitalization: TextCapitalization.none,
                       controller: emailcontroller,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
@@ -152,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextFormField(
                       controller: pwdcontroller,
-                      keyboardType: TextInputType.text,
+                      keyboardType: TextInputType.visiblePassword,
                       style: const TextStyle(color: Colors.white),
                       obscureText: showPassword,
                       decoration: InputDecoration(
@@ -221,30 +220,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       onChanged: (value) => password = value,
                     ),
-                    const SizedBox(height: 20),
                     SizedBox(
-                      height: size.height * 0.02,
-                    ),
-                    // const Align(
-                    //   alignment: Alignment.topRight,
-                    //   child: Text(
-                    //     'Forget Password ?',
-                    //     style: TextStyle(
-                    //         fontSize: 14,
-                    //         fontWeight: FontWeight.bold,
-                    //         color: Colors.white70),
-                    //   ),
-                    // ),
-                    SizedBox(
-                      height: size.height * 0.04,
+                      height: size.height * 0.1,
                     ),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       GestureDetector(
                         onTap: () async {
                           if (_formKey.currentState!.validate()) {
-                            // await createUser(
-                            //     email: emailcontroller.text,
-                            //     password: pwdcontroller.text);
+                            newuUser.userEmail = emailcontroller.text;
+                            newuUser.password = pwdcontroller.text;
                             showDialog(
                                 context: context,
                                 builder: ((context) => const Center(
@@ -257,46 +241,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                       password: pwdcontroller.text);
                             } on FirebaseAuthException catch (e) {
                               Navigator.of(context).pop();
-                              if (e.code == 'user-not-found') {
-                                const SnackBar(
-                                    content:
-                                        Text('No user found for the email'));
-                              } else if (e.code == 'wrong-password') {
-                                const SnackBar(content: Text('Wrong password'));
+                              if (e.email == null) {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                        content: Center(
+                                  child: Text(
+                                    'No user found for the email',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )));
+                              } else if (e.code == null) {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                        content: Text(
+                                  'Wrong password',
+                                  textAlign: TextAlign.center,
+                                )));
                               }
                             }
-                            Navigator.push(
+
+                            Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
                                     pageBuilder: ((context, animation,
                                             secondaryAnimation) =>
                                         const Homepage())));
                             Navigator.pop(context);
-                            // userdata = await checkLogin(userName, password);
-
-                            // if (userdata.isEmpty) {
-                            //   EasyLoading.showToast(
-                            //       'Please enter correct credentials',
-                            //       toastPosition: EasyLoadingToastPosition.top,
-                            //       maskType: EasyLoadingMaskType.black);
-                            // } else if (userdata.isNotEmpty) {
-                            //   if (userdata[0].password == password) {
-                            //     // ignore: use_build_context_synchronously
-                            //     await getmovieslist();
-                            //     // ignore: use_build_context_synchronously
-                            //     Navigator.push(
-                            //         context,
-                            //         PageRouteBuilder(
-                            //             pageBuilder: ((context, animation,
-                            //                     secondaryAnimation) =>
-                            //                 const Homepage())));
-                            //   } else if (userdata[0].password != password) {
-                            //     EasyLoading.showToast(
-                            //       'Incorrect password',
-                            //       toastPosition: EasyLoadingToastPosition.top,
-                            //     );
-                            //   }
-                            //}
                           }
                         },
                         child: Container(
@@ -324,36 +294,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              // Padding(
-              //   padding: const EdgeInsets.only(bottom: 25),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       const Text(
-              //         "Don't have an account?",
-              //         style: TextStyle(color: Colors.white38),
-              //       ),
-              //       const SizedBox(
-              //         width: 8,
-              //       ),
-              //       // GestureDetector(
-              //       //   onTap: () {
-              //       //     Navigator.push(context,
-              //       //         MaterialPageRoute(builder: (context) {
-              //       //       return SignUpPage();
-              //       //     }));
-              //       //   },
-              //       //   child: const Text(
-              //       //     'Signup Now!',
-              //       //     style: TextStyle(
-              //       //         fontWeight: FontWeight.w500,
-              //       //         fontSize: 16,
-              //       //         color: Colors.white),
-              //       //   ),
-              //       // )
-              //     ],
-              //   ),
-              // )
             ],
           ),
         ),
