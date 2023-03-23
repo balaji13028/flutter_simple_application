@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,42 +33,49 @@ class _ProfilePageState extends State<ProfilePage> {
   List<String> roles = ['Admin', 'Viewer'];
   String? role;
   bool showPassword = true;
-  List<UserProfileData> user = [];
+  late List<UserProfileData> user;
+  @override
+  void initState() {
+    user = [];
+
+    super.initState();
+  }
 
   bool errorText = false;
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      body: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .where('userEmail', isEqualTo: newuUser.userEmail)
-              .snapshots(),
-          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+    return StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .where('userEmail', isEqualTo: newuUser.userEmail)
+            .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.data == null) {
+            return const SizedBox();
+          }
+
+          if (snapshot.data!.docs.isEmpty) {
+            return const SizedBox(
+              child: Center(child: Text("No users")),
+            );
+          }
+
+          if (snapshot.hasData) {
+            for (var doc in snapshot.data!.docs) {
+              final data =
+                  UserProfileData.fromJson(doc.data() as Map<String, dynamic>);
+
+              user.add(data);
             }
 
-            if (snapshot.data == null) {
-              return const SizedBox();
-            }
-
-            if (snapshot.data!.docs.isEmpty) {
-              return const SizedBox(
-                child: Center(child: Text("No users")),
-              );
-            }
-
-            if (snapshot.hasData) {
-              for (var doc in snapshot.data!.docs) {
-                final data = UserProfileData.fromJson(
-                    doc.data() as Map<String, dynamic>);
-
-                user.add(data);
-              }
-
-              return Column(
+            return Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: Column(
                 children: [
                   Container(
                     height: size.height,
@@ -147,60 +156,63 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ],
-              );
-            }
-            return const SizedBox();
-          }),
-      bottomSheet: Container(
-        height: size.height * 0.525,
-        width: size.width,
-        padding: const EdgeInsets.only(top: 5, left: 20, right: 20),
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10), topRight: Radius.circular(10))),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(
-                Icons.manage_accounts,
-                size: 35,
-                color: Colors.black54,
               ),
-              title: const Text(
-                'Change Password',
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                    fontWeight: FontWeight.normal),
+              bottomSheet: Container(
+                height: size.height * 0.525,
+                width: size.width,
+                padding: const EdgeInsets.only(top: 5, left: 20, right: 20),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10))),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.manage_accounts,
+                        size: 35,
+                        color: Colors.black54,
+                      ),
+                      title: const Text(
+                        'Change Password',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black,
+                            fontWeight: FontWeight.normal),
+                      ),
+                      onTap: () {
+                        alertBox(context, size, 'Reset Password?',
+                            'Are you sure do you want to change password.', 1);
+                      },
+                    ),
+                    user[0].role == 'Viewer'
+                        ? const SizedBox()
+                        : ListTile(
+                            leading: const Icon(
+                              Icons.person_add_alt_1,
+                              size: 35,
+                              color: Colors.black54,
+                            ),
+                            title: const Text(
+                              'Add User',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.normal),
+                            ),
+                            onTap: () {
+                              alertBox(context, size, 'Add User?',
+                                  'Are you sure do you want to add User.', 2);
+                            },
+                          ),
+                  ],
+                ),
               ),
-              onTap: () {
-                alertBox(context, size, 'Reset Password?',
-                    'Are you sure do you want to change password.', 1);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.person_add_alt_1,
-                size: 35,
-                color: Colors.black54,
-              ),
-              title: const Text(
-                'Add User',
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                    fontWeight: FontWeight.normal),
-              ),
-              onTap: () {
-                alertBox(context, size, 'Add User?',
-                    'Are you sure do you want to add User.', 2);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+            );
+          }
+          return const SizedBox();
+        });
   }
 
   passwordTextfieldsBox(context, Size size) {
@@ -427,14 +439,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               onTap: () async {
                                 if (formKey.currentState!.validate()) {
                                   if (crtPwdController.text ==
-                                      newuUser.password) {
+                                      user[0].password) {
                                     changePassword(
                                         newPwdcontroller.text, user[0].id);
                                     crtPwdController.clear();
                                     newPwdcontroller.clear();
-                                    EasyLoading.showToast(
-                                        'Password changed successfylly');
-                                    Navigator.pop(context);
+
+                                    Navigator.pop(context, true);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                            backgroundColor: Colors.green,
+                                            content: Text(
+                                              'Password changed successfully',
+                                              textAlign: TextAlign.center,
+                                            )));
                                   } else {
                                     EasyLoading.showToast('wrong password');
                                   }
@@ -805,13 +823,18 @@ class _ProfilePageState extends State<ProfilePage> {
                                     password: userPWD.text,
                                   );
                                   Navigator.pop(context);
-                                  Navigator.pop(context);
+                                  Navigator.pop(context, true);
+                                  userName.clear();
+                                  userEmail.clear();
+                                  userPWD.clear();
+                                  role = '';
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(
-                                    content: Center(
-                                        child: Text('User added sucessfully')),
-                                    backgroundColor: Colors.green,
-                                  ));
+                                          backgroundColor: Colors.green,
+                                          content: Text(
+                                            'User added successfully',
+                                            textAlign: TextAlign.center,
+                                          )));
                                 } else {
                                   setState(() {
                                     errorText = true;

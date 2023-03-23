@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -147,17 +149,14 @@ class DrawerSide extends StatelessWidget {
                             fontWeight: FontWeight.bold),
                       ),
                       onTap: () async {
-                        showDialog(
-                            context: context,
-                            builder: ((context) => const Center(
-                                  child: CircularProgressIndicator(),
-                                )));
-                        await FirebaseAuth.instance.signOut();
-                        Navigator.pop(context);
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: ((context) => const LoginScreen())));
+                        // showDialog(
+                        //     context: context,
+                        //     builder: ((context) => const Center(
+                        //           child: CircularProgressIndicator(),
+                        //         )));
+                        signOut(context);
+
+                        //Navigator.pop(context);
                       },
                     ),
                   )
@@ -167,5 +166,20 @@ class DrawerSide extends StatelessWidget {
           }
           return SizedBox();
         });
+  }
+
+  signOut(context) async {
+    try {
+      FirebaseAuth auth = FirebaseAuth.instance;
+
+      auth.signOut().then((res) async {
+        Navigator.of(context).pop(true);
+      });
+      //   Navigator.pushReplacement(context,
+      //       MaterialPageRoute(builder: ((context) => const LoginScreen())));
+      // });
+    } catch (e) {
+      log(e.toString());
+    }
   }
 }

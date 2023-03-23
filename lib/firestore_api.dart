@@ -1,8 +1,6 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_simple_application/user_model.dart';
 
 final db = FirebaseFirestore.instance.collection('users');
@@ -24,13 +22,14 @@ Future createUser(
 
 void changePassword(String yourPassword, id) async {
   var user = FirebaseAuth.instance.currentUser!;
+  log(user.toString());
   user.updatePassword(yourPassword).then((_) {
     FirebaseFirestore.instance.collection("users").doc(id).update({
       "userPassword": yourPassword,
     }).then((_) {
-      print("Successfully changed password");
+      log("Successfully changed password");
     });
   }).catchError((error) {
-    print("Error " + error.toString());
+    log("Error " + error.toString());
   });
 }

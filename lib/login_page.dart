@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -15,6 +17,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final messagekey = GlobalKey<ScaffoldMessengerState>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailcontroller = TextEditingController();
   final TextEditingController pwdcontroller = TextEditingController();
@@ -58,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
+      key: scaffoldKey,
       resizeToAvoidBottomInset: false,
       body: Container(
         decoration: const BoxDecoration(
@@ -237,35 +242,47 @@ class _LoginScreenState extends State<LoginScreen> {
                             try {
                               await FirebaseAuth.instance
                                   .signInWithEmailAndPassword(
-                                      email: emailcontroller.text,
-                                      password: pwdcontroller.text);
+                                      email: emailcontroller.text.trim(),
+                                      password: pwdcontroller.text.trim())
+                                  .then((value) {
+                                Navigator.pushReplacement(
+                                    context,
+                                    PageRouteBuilder(
+                                        pageBuilder: ((context, animation,
+                                                secondaryAnimation) =>
+                                            const Homepage())));
+                              });
                             } on FirebaseAuthException catch (e) {
+                              log(e.toString());
                               Navigator.of(context).pop();
-                              if (e.email == null) {
-                                ScaffoldMessenger.of(context)
+                              if (e.code == 'user-not-found') {
+                                ScaffoldMessenger.of(
+                                        scaffoldKey.currentState!.context)
                                     .showSnackBar(const SnackBar(
-                                        content: Center(
-                                  child: Text(
-                                    'No user found for the email',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                )));
-                              } else if (e.code == null) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
+                                        backgroundColor: Colors.red,
                                         content: Text(
-                                  'Wrong password',
-                                  textAlign: TextAlign.center,
-                                )));
+                                          'No user found for the email',
+                                          textAlign: TextAlign.center,
+                                        )));
+                              } else if (e.code == 'wrong-password') {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                        backgroundColor: Colors.red,
+                                        content: Text(
+                                          'Wrong password',
+                                          textAlign: TextAlign.center,
+                                        )));
+                              } else {
+                                //if (e.code == 'too-many-requests') {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                        backgroundColor: Colors.red,
+                                        content: Text(
+                                          'Have a server issue, Please try again after sometime',
+                                          textAlign: TextAlign.center,
+                                        )));
                               }
                             }
-
-                            Navigator.pushReplacement(
-                                context,
-                                PageRouteBuilder(
-                                    pageBuilder: ((context, animation,
-                                            secondaryAnimation) =>
-                                        const Homepage())));
                             Navigator.pop(context);
                           }
                         },
