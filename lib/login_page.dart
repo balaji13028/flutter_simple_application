@@ -243,15 +243,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               await FirebaseAuth.instance
                                   .signInWithEmailAndPassword(
                                       email: emailcontroller.text.trim(),
-                                      password: pwdcontroller.text.trim())
-                                  .then((value) {
-                                Navigator.pushReplacement(
-                                    context,
-                                    PageRouteBuilder(
-                                        pageBuilder: ((context, animation,
-                                                secondaryAnimation) =>
-                                            const Homepage())));
-                              });
+                                      password: pwdcontroller.text.trim());
+
+                              Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                      pageBuilder: ((context, animation,
+                                              secondaryAnimation) =>
+                                          const Homepage())));
+                              Navigator.pop(context);
                             } on FirebaseAuthException catch (e) {
                               log(e.toString());
                               Navigator.of(context).pop();
@@ -283,7 +283,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                         )));
                               }
                             }
-                            Navigator.pop(context);
                           }
                         },
                         child: Container(

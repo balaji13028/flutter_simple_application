@@ -80,7 +80,7 @@ class _HomepageState extends State<Homepage> {
                     child: Container(
                         padding: const EdgeInsets.only(
                             right: 10, top: 10, bottom: 10),
-                        height: size.height * 0.12,
+                        height: size.height * 0.1,
                         width: size.width,
                         decoration: BoxDecoration(
                           color: Colors.white,
