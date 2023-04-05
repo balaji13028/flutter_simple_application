@@ -30,6 +30,6 @@ void changePassword(String yourPassword, id) async {
       log("Successfully changed password");
     });
   }).catchError((error) {
-    log("Error " + error.toString());
+    log("Error $error");
   });
 }

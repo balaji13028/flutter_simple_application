@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_simple_application/drawer.dart';
 import 'package:flutter_simple_application/user_model.dart';
@@ -72,6 +71,7 @@ class _HomepageState extends State<Homepage> {
                 }
                 return ListView.builder(
                   itemCount: userlist.length,
+                  physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) => Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
