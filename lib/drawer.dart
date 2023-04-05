@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_simple_application/profile_page.dart';
 import 'package:flutter_simple_application/user_model.dart';
 
-import 'login_page.dart';
-
 class DrawerSide extends StatelessWidget {
   const DrawerSide({super.key});
 
@@ -164,7 +162,7 @@ class DrawerSide extends StatelessWidget {
               ),
             );
           }
-          return SizedBox();
+          return const SizedBox();
         });
   }
 
